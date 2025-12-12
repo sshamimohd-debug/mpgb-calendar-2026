@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>MPGB Calendar 2026</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f4c81">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="MPGB Calendar">
+
+  <style>
+    :root{
+      --bg:#f3f5f9;
+      --card:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+
+      --bankBlue:#0f4c81;
+      --bankGreen:#10a64a;
+
+      --holiday:#b91c1c;
+      --holidaySoft:#fff1f2;
+
+      --shadow:0 12px 30px rgba(0,0,0,.10);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--ink);
+      -webkit-tap-highlight-color: transparent;
+      background: linear-gradient(180deg, rgba(15,76,129,.12), rgba(16,166,74,.07), #f3f5f9);
+    }
+
+    /* App frame */
+    .shell{
+      max-width:520px;
+      margin:0 auto;
+      min-height:100vh;
+      background:transparent;
+    }
+
+    /* ===== MPGB Header Image (BIGGER) ===== */
+    .bank-header{
+      background:#fff;
+      border-bottom:1px solid var(--line);
+    }
+    .bank-header img{
+      width:100%;
+      height:120px;         /* bigger banner */
+      object-fit:cover;
+      display:block;
+    }
+    @media (max-width:480px){
+      .bank-header img{ height:140px; }
+    }
+
+    /* ===== App Bar ===== */
+    .appbar{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(255,255,255,.92);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+      padding:10px 14px 12px;
+    }
+    .appbar .row1{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .app-title{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .iconbtn{
+      width:40px; height:40px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      user-select:none;
+      font-weight:900;
+    }
+    .iconbtn:active{ transform: translateY(1px); }
+
+    .monthTitle{
+      margin-top:10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .monthText{
+      font-size:22px;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    .hint{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .wrap{
+      padding:14px 12px 22px;
+    }
+
+    /* ===== Calendar Card with LOGO Watermark (icon-512.png) ===== */
+    .card{
+      position:relative;
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:url("icon-512.png"); /* watermark LOGO */
+      background-repeat:no-repeat;
+      background-position:center;
+      background-size:78%;
+      opacity:.06;
+      pointer-events:none;
+    }
+
+    .dow, .grid, .footer{ position:relative; z-index:1; }
+
+    .dow{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      padding:10px 10px 6px;
+      border-bottom:1px solid #f1f5f9;
+      background: linear-gradient(90deg, rgba(15,76,129,.06), rgba(16,166,74,.05));
+    }
+    .dow div{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:900;
+      letter-spacing:.2px;
+      padding:6px 0;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      padding:10px;
+      gap:8px;
+    }
+
+    /* Stylish date cells (bank theme) */
+    .cell{
+      height:54px;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:17px;
+      font-weight:950;
+      letter-spacing:.2px;
+      user-select:none;
+
+      background: rgba(15,76,129,.05);
+      color:#0b1f33;
+
+      transition: transform .08s ease, background .12s ease;
+      position:relative; /* for dot */
+    }
+    .empty{ visibility:hidden; }
+
+    .cell:active{
+      transform: scale(.98);
+      background: rgba(15,76,129,.12);
+    }
+
+    /* Holiday cells */
+    .holiday{
+      background: rgba(185,28,28,.10);
+      color:#b91c1c;
+    }
+    .holiday:active{ background:#ffe4e6; }
+
+    /* Today outline */
+    .today{
+      outline:2px solid rgba(15,76,129,.45);
+      outline-offset:2px;
+    }
+
+    /* Note indicator dot */
+    .note-dot{
+      position:absolute;
+      bottom:8px;
+      width:6px; height:6px;
+      border-radius:50%;
+      background: var(--bankBlue);
+    }
+
+    .footer{
+      padding:10px 12px;
+      border-top:1px solid #f1f5f9;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-size:12px;
+      color:var(--muted);
+      background:#fbfcfe;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      font-weight:800;
+      color:var(--muted);
+    }
+    .dot{
+      width:10px; height:10px;
+      border-radius:50%;
+      background:var(--holiday);
+    }
+
+    /* ===== Notes / Reminder Modal ===== */
+    #noteModal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      z-index:9999;
+    }
+    .modalSheet{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      background:#fff;
+      border-radius:18px 18px 0 0;
+      padding:14px 14px 16px;
+      border-top:1px solid #e5e7eb;
+    }
+    .modalTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .modalTitle{
+      font-weight:1000;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .closeBtn{
+      border:1px solid #e5e7eb;
+      background:#fff;
+      border-radius:12px;
+      padding:8px 12px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .modalGrid{
+      margin-top:10px;
+      display:grid;
+      gap:10px;
+    }
+    .inp{
+      width:100%;
+      padding:12px;
+      border:1px solid #e5e7eb;
+      border-radius:14px;
+      font-weight:800;
+      outline:none;
+      background:#fbfdff;
+    }
+    .twoCol{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .btnRow{
+      display:flex;
+      gap:10px;
+    }
+    .saveBtn{
+      flex:1;
+      background:var(--bankBlue);
+      color:#fff;
+      border:none;
+      border-radius:14px;
+      padding:12px;
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .delBtn{
+      flex:1;
+      background:#b91c1c;
+      color:#fff;
+      border:none;
+      border-radius:14px;
+      padding:12px;
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .miniMsg{
+      font-size:12px;
+      color:#6b7280;
+      font-weight:800;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+
+    <div class="bank-header">
+      <img src="header.png" alt="Madhya Pradesh Gramin Bank">
+    </div>
+
+    <div class="appbar" id="touchArea">
+      <div class="row1">
+        <div class="app-title">Madhya Pradesh Gramin Bank</div>
+        <div class="actions">
+          <div class="iconbtn" title="Previous" onclick="prevMonth()">&#x2039;</div>
+          <div class="iconbtn" title="Next" onclick="nextMonth()">&#x203A;</div>
+          <div class="iconbtn" title="Today" onclick="goToday()">&#x25CF;</div>
+        </div>
+      </div>
+
+      <div class="monthTitle">
+        <div class="monthText" id="monthText">January 2026</div>
+        <div class="hint">Swipe ◀ ▶</div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="card">
+        <div class="dow">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+
+        <div class="footer">
+          <div class="badge"><span class="dot"></span> Sunday / 2nd & 4th Saturday</div>
+          <div>Calendar 2026</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notes / Reminder Modal -->
+  <div id="noteModal" onclick="if(event.target.id==='noteModal') closeModal()">
+    <div class="modalSheet">
+      <div class="modalTop">
+        <div class="modalTitle" id="modalTitle">Add Note</div>
+        <button class="closeBtn" onclick="closeModal()">Close</button>
+      </div>
+
+      <div class="modalGrid">
+        <input id="noteText" class="inp" placeholder="Meeting / Note (e.g., RO Review at 3 PM)" />
+
+        <div class="twoCol">
+          <input id="remDate" class="inp" type="date" />
+          <input id="remTime" class="inp" type="time" />
+        </div>
+
+        <div class="btnRow">
+          <button class="saveBtn" onclick="saveNote()">Save</button>
+          <button class="delBtn" onclick="deleteNote()">Delete</button>
+        </div>
+
+        <div class="miniMsg" id="modalMsg">
+          Tip: Note save offline hota hai. (Notifications baad me add kar sakte hain.)
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== STATE =====
+  const YEAR = 2026;
+  let current = new Date(YEAR, 0, 1); // Jan 2026
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+  function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
+
+  // Sunday OR 2nd/4th Saturday
+  function isFixedHoliday(y,m,d){
+    const dt = new Date(y,m,d);
+    const dow = dt.getDay(); // 0 Sun ... 6 Sat
+    if(dow === 0) return true;
+    if(dow === 6){
+      let count = 0;
+      for(let i=1;i<=d;i++){
+        if(new Date(y,m,i).getDay() === 6) count++;
+      }
+      return (count === 2 || count === 4);
+    }
+    return false;
+  }
+
+  // ===== Notes store (LocalStorage) =====
+  const STORE_KEY = "mpgb_notes_v1";
+  let selectedKey = null; // YYYY-MM-DD
+
+  function loadStore(){
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
+    catch(e){ return {}; }
+  }
+  function saveStore(obj){
+    localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+  }
+
+  // ===== Modal controls =====
+  function openModal(key){
+    selectedKey = key;
+    const store = loadStore();
+    const data = store[key] || { text:"", remindAt:"" };
+
+    document.getElementById("modalTitle").textContent = `Notes: ${key}`;
+    document.getElementById("noteText").value = data.text || "";
+
+    document.getElementById("remDate").value = key;
+    document.getElementById("remTime").value = data.remindAt ? data.remindAt.split("T")[1].slice(0,5) : "";
+
+    document.getElementById("noteModal").style.display = "block";
+  }
+  function closeModal(){
+    document.getElementById("noteModal").style.display = "none";
+  }
+  function saveNote(){
+    if(!selectedKey) return;
+
+    const text = document.getElementById("noteText").value.trim();
+    const date = document.getElementById("remDate").value;
+    const time = document.getElementById("remTime").value;
+
+    const store = loadStore();
+
+    if(!text){
+      delete store[selectedKey];
+      saveStore(store);
+      closeModal();
+      render();
+      return;
+    }
+
+    const remindAt = (date && time) ? `${date}T${time}:00` : "";
+    store[selectedKey] = { text, remindAt };
+
+    saveStore(store);
+    closeModal();
+    render();
+  }
+  function deleteNote(){
+    if(!selectedKey) return;
+    const store = loadStore();
+    delete store[selectedKey];
+    saveStore(store);
+    closeModal();
+    render();
+  }
+
+  function render(){
+    const y = current.getFullYear();
+    const m = current.getMonth();
+    document.getElementById("monthText").textContent = `${MONTHS[m]} ${y}`;
+
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    const firstDow = new Date(y,m,1).getDay();
+    const total = daysInMonth(y,m);
+
+    // empty cells before day 1
+    for(let i=0;i<firstDow;i++){
+      const div = document.createElement("div");
+      div.className = "cell empty";
+      grid.appendChild(div);
+    }
+
+    const today = new Date();
+    const isThisMonthToday = (today.getFullYear() === y && today.getMonth() === m);
+
+    const store = loadStore();
+
+    for(let d=1; d<=total; d++){
+      const div = document.createElement("div");
+      div.className = "cell";
+      div.textContent = d;
+
+      if(isFixedHoliday(y,m,d)) div.classList.add("holiday");
+      if(isThisMonthToday && today.getDate() === d) div.classList.add("today");
+
+      // note indicator
+      const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      if(store[key] && store[key].text){
+        const dot = document.createElement("span");
+        dot.className = "note-dot";
+        div.appendChild(dot);
+      }
+
+      // open modal on click
+      div.addEventListener("click", ()=>{
+        openModal(key);
+      });
+
+      grid.appendChild(div);
+    }
+  }
+
+  function prevMonth(){
+    current = new Date(current.getFullYear(), current.getMonth()-1, 1);
+    if(current.getFullYear() < YEAR) current = new Date(YEAR,0,1);
+    render();
+  }
+
+  function nextMonth(){
+    current = new Date(current.getFullYear(), current.getMonth()+1, 1);
+    if(current.getFullYear() > YEAR) current = new Date(YEAR,11,1);
+    render();
+  }
+
+  function goToday(){
+    const t = new Date();
+    if(t.getFullYear() === YEAR) current = new Date(YEAR, t.getMonth(), 1);
+    else current = new Date(YEAR, 0, 1);
+    render();
+  }
+
+  // Swipe on appbar
+  let startX = 0, startY = 0;
+  const touchArea = document.getElementById("touchArea");
+  touchArea.addEventListener("touchstart", (e)=>{
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, {passive:true});
+
+  touchArea.addEventListener("touchend", (e)=>{
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const dx = endX - startX;
+    const dy = endY - startY;
+
+    if(Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)){
+      if(dx > 0) prevMonth();
+      else nextMonth();
+    }
+  }, {passive:true});
+
+  render();
+
+  // Register Service Worker (PWA)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js');
+  }
+</script>
+
+</body>
+</html>
