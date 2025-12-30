@@ -1,6 +1,6 @@
-/* MPGB Calendar – Safe PWA Service Worker */
+/* MPGB Calendar – PWA Safe Service Worker (no stuck cache) */
 
-const CACHE_NAME = "mpgb-calendar-v2026-final";
+const CACHE_NAME = "mpgb-calendar-v2026-final-01";
 
 const FILES_TO_CACHE = [
   "./",
@@ -20,16 +20,12 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-/* ACTIVATE – purane cache delete */
+/* ACTIVATE: delete old caches */
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null))
       )
     )
   );
@@ -40,7 +36,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  /* HTML / navigation → NETWORK FIRST */
+  // HTML navigation => NETWORK FIRST (so updates show immediately)
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -54,16 +50,15 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  /* Static assets → CACHE FIRST */
+  // Static assets => CACHE FIRST + update cache in background
   event.respondWith(
-    caches.match(req).then(
-      (cached) =>
-        cached ||
-        fetch(req).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-    )
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+      return fetch(req).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+        return res;
+      });
+    })
   );
 });
