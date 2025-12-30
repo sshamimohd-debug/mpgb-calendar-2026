@@ -878,7 +878,7 @@
 
         const label = document.createElement("span");
         label.className = "holiday-label";
-        label.textContent = shortLabel(bh[k]);     // SHORT label inside cell
+        label.textContent = bh[k];   
         label.setAttribute("aria-label", bh[k]);   // full name accessible
         div.appendChild(label);
       }
@@ -967,6 +967,7 @@
 
 </body>
 </html>
+
 
 
 
