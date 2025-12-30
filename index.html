@@ -1,4 +1,4 @@
-<!doctype html>
+ellipsisipsisoctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -259,19 +259,15 @@
     }
 
     /* === Holiday label: SHORT + no ugly wrapping === */
-    /* === Holiday label: FULL NAME, SMALL FONT, 2 LINES === */
-./* === Holiday label: FULL NAME (2 lines, mobile friendly) === */
+    /* === Holiday label: FULL NAME, SMALL FONT, 2 LINES === *Holiday== Holiday label: FULL NAME (2 lines, mobile friendly) === */
 /* Holiday name BELOW date (clean look) */
+/* Holiday name BELOW the date box */
 .holiday-label{
-  position:absolute;
-  bottom:6px;
-  left:4px;
-  right:4px;
-
-  font-size:10px;
+  display:block;
+  margin-top:6px;
+  font-size:11px;
   font-weight:700;
   color:#0f766e;
-
   text-align:center;
   line-height:1.1;
 
@@ -874,7 +870,7 @@ el.innerHTML = `This month: <span>${preview}${more}</span>`;
         label.className = "holiday-label";
         label.textContent = bh[k]; 
         label.setAttribute("aria-label", bh[k]);   // full name accessible
-        div.appendChild(label);
+        div.after(label);
       }
 
       // today
