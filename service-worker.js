@@ -1,4 +1,4 @@
-const CACHE_NAME = "mpgb-calendar-2026-v5";
+const CACHE_NAME = "mpgb-calendar-v999";
 
 const FILES_TO_CACHE = [
   "./",
@@ -41,5 +41,6 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
+
 
 
