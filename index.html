@@ -178,12 +178,12 @@
       display:grid;
       grid-template-columns:repeat(7,1fr);
       padding:10px;
-      gap:8px;
+      gap:10px;
     }
 
     /* Stylish date cells (bank theme) */
     .cell{
-      height:64px;
+      height:74px;
       border-radius:16px;
       display:flex;
       flex-direction:column;
@@ -194,12 +194,13 @@
       letter-spacing:.2px;
       user-select:none;
 
-      background: rgba(15,76,129,.05);
+      background: #f8fafc;
       color:#0b1f33;
 
-      transition: transform .08s ease, background .12s ease;
+      transition: transform .08s ease, background .12s ease, box-shadow .12s ease;
       position:relative; /* for dot */
       gap:4px;
+      border:1px solid #eef2f7;
     }
     .empty{ visibility:hidden; }
 
@@ -210,17 +211,18 @@
 
     /* Holiday cells */
     .holiday{
-      background: rgba(185,28,28,.10);
+      background: rgba(185,28,28,.08);
       color:#b91c1c;
+      border:1px solid rgba(185,28,28,.18);
     }
     .holiday:active{ background:#ffe4e6; }
 
     /* Bank holidays */
     .bank-holiday{
-      background: linear-gradient(180deg, rgba(16,166,74,.16), rgba(16,166,74,.08));
+      background: linear-gradient(180deg, rgba(16,166,74,.14), rgba(16,166,74,.06));
       color: var(--bankHoliday);
-      border:1px solid rgba(16,166,74,.45);
-      box-shadow: inset 0 0 0 1px rgba(16,166,74,.12);
+      border:1px solid rgba(16,166,74,.35);
+      box-shadow: inset 0 0 0 1px rgba(16,166,74,.08);
     }
     .bank-holiday:active{ background:#dcfce7; }
     .bank-holiday::after{
@@ -232,9 +234,9 @@
     }
 
     .holiday.bank-holiday{
-      background: linear-gradient(180deg, rgba(185,28,28,.18), rgba(16,166,74,.12));
+      background: linear-gradient(180deg, rgba(185,28,28,.14), rgba(16,166,74,.10));
       color:#7f1d1d;
-      border:1px solid rgba(185,28,28,.4);
+      border:1px solid rgba(185,28,28,.28);
     }
 
     .date-num{
@@ -243,18 +245,21 @@
       line-height:1;
     }
     .holiday-label{
-      font-size:9px;
+      font-size:10px;
       font-weight:800;
       text-transform:uppercase;
       letter-spacing:.3px;
       color:#0f766e;
-      background: rgba(255,255,255,.7);
-      padding:2px 6px;
+      background: rgba(255,255,255,.9);
+      padding:2px 8px;
       border-radius:999px;
-      max-width:90%;
-      white-space:nowrap;
+      max-width:92%;
+      line-height:1.2;
+      text-align:center;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
       overflow:hidden;
-      text-overflow:ellipsis;
     }
     .holiday.bank-holiday .holiday-label{
       color:#7f1d1d;
@@ -438,6 +443,7 @@
             <div class="badge"><span class="dot"></span> Sunday / 2nd & 4th Saturday</div>
             <div class="badge"><span class="dot bank"></span> Bank Holiday</div>
             <div class="footer-note">Tip: Date par tap karke meeting / notes add karein.</div>
+            <div class="holiday-summary" id="holidaySummary">Holiday: <span>None</span></div>
           </div>
           <div>Calendar 2026</div>
         </div>
@@ -632,6 +638,7 @@
 
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
+    updateHolidaySummary("");
 
     const firstDow = new Date(y,m,1).getDay();
     const total = daysInMonth(y,m);
@@ -679,11 +686,31 @@
 
       // open modal on click
       div.addEventListener("click", ()=>{
+        if(BANK_HOLIDAYS[key]){
+          updateHolidaySummary(BANK_HOLIDAYS[key]);
+        } else {
+          updateHolidaySummary("");
+        }
         openModal(key);
       });
 
       grid.appendChild(div);
     }
+
+    if(isThisMonthToday){
+      const todayKey = `${y}-${String(m+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+      if(BANK_HOLIDAYS[todayKey]){
+        updateHolidaySummary(BANK_HOLIDAYS[todayKey]);
+      }
+    }
+  }
+
+  function updateHolidaySummary(name){
+    const summary = document.getElementById("holidaySummary");
+    if(!summary) return;
+    summary.innerHTML = name
+      ? `Holiday: <span>${name}</span>`
+      : "Holiday: <span>None</span>";
   }
 
   function prevMonth(){
@@ -749,4 +776,21 @@
       font-size:11px;
       color:#94a3b8;
       font-weight:700;
+    }
+    .holiday-summary{
+      margin-top:6px;
+      font-size:12px;
+      color:#0f172a;
+      font-weight:800;
+      background:#f1f5f9;
+      border-radius:10px;
+      padding:6px 8px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+    .holiday-summary span{
+      font-weight:900;
+      color:#0f766e;
     }
