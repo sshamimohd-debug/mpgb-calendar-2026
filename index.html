@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes" />
   <title>MPGB Calendar 2026</title>
 
   <!-- PWA -->
@@ -38,7 +38,7 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--ink);
       -webkit-tap-highlight-color: transparent;
-      background: linear-gradient(180deg, rgba(15,76,129,.12), rgba(16,166,74,.07), #f3f5f9);
+      background: linear-gradient(180deg, rgba(15,76,129,.10), rgba(16,166,74,.05), #f8fafc);
     }
 
     /* App frame */
@@ -46,7 +46,8 @@
       max-width:520px;
       margin:0 auto;
       min-height:100vh;
-      background:transparent;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(10px);
     }
 
     /* ===== MPGB Header Image (BIGGER) ===== */
@@ -58,15 +59,10 @@
 
     .bank-header img{
       width:100%;
-      height:auto;
-      max-height:140px;
+      height:clamp(88px, 18vw, 140px);
       object-fit:contain;
       object-position:center;
       display:block;
-    }
-
-    @media (min-width:600px){
-      .bank-header img{ max-height:120px; }
     }
 
 
@@ -419,16 +415,16 @@
       <div class="row1">
         <div class="app-title">Madhya Pradesh Gramin Bank</div>
         <div class="actions">
-          <div class="iconbtn" title="Previous" onclick="prevMonth()">&#x2039;</div>
-          <div class="iconbtn" title="Next" onclick="nextMonth()">&#x203A;</div>
-          <div class="iconbtn" title="Today" onclick="goToday()">&#x25CF;</div>
-          <div class="iconbtn" title="Add Note" onclick="openTodayNote()">&#9998;</div>
+          <button class="iconbtn" type="button" title="Previous" aria-label="Previous month" onclick="prevMonth()">&#x2039;</button>
+          <button class="iconbtn" type="button" title="Next" aria-label="Next month" onclick="nextMonth()">&#x203A;</button>
+          <button class="iconbtn" type="button" title="Today" aria-label="Go to today" onclick="goToday()">&#x25CF;</button>
+          <button class="iconbtn" type="button" title="Add Note" aria-label="Add note for today" onclick="openTodayNote()">&#9998;</button>
         </div>
       </div>
 
       <div class="monthTitle">
         <div class="monthText" id="monthText">January 2026</div>
-        <div class="hint">Swipe ◀ ▶</div>
+        <div class="hint">Swipe ◀ ▶ to change month</div>
       </div>
     </div>
 
@@ -446,7 +442,7 @@
             <div class="badge"><span class="dot bank"></span> Bank Holiday</div>
             <div class="holiday-summary" id="holidaySummary">Holiday: <span>None</span></div>
           </div>
-          <div>Calendar 2026</div>
+          <div id="calendarYearLabel">Calendar 2026</div>
         </div>
       </div>
     </div>
@@ -475,7 +471,7 @@
         </div>
 
         <div class="miniMsg" id="modalMsg">
-          Tip: Notes offline save hote hain. Reminder notification ke liye permission allow karein.
+          Tip: Notes are saved offline. Keep the app open for reminders.
         </div>
         <button class="ghostBtn" onclick="requestNotificationPermission()">Enable Reminder Notifications</button>
       </div>
@@ -484,29 +480,30 @@
 
 <script>
   // ===== STATE =====
-  const YEAR = 2026;
-  let current = new Date(YEAR, 0, 1); // Jan 2026
+  let current = new Date(2026, 0, 1); // Default to Jan 2026
   const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const BANK_HOLIDAYS = {
-    "2026-01-26": "Republic Day",
-    "2026-03-03": "Holi",
-    "2026-03-21": "Id-ul-Fitr",
-    "2026-03-27": "Ram Navami",
-    "2026-03-31": "Mahavir Jayanti",
-    "2026-04-01": "Bank Annual Closing",
-    "2026-04-03": "Good Friday",
-    "2026-05-01": "Buddh Purnima",
-    "2026-05-27": "Eid-uz-Zuha",
-    "2026-06-26": "Moharram",
-    "2026-08-15": "Independence Day",
-    "2026-08-26": "Milad-un-Nabi",
-    "2026-08-28": "Raksha Bandhan",
-    "2026-09-04": "Janmashtami",
-    "2026-10-02": "Gandhi Jayanti",
-    "2026-10-20": "Dussehra (Vijayadashami)",
-    "2026-11-09": "Govardhan Puja",
-    "2026-11-24": "Guru Nanak Jayanti",
-    "2026-12-25": "Christmas"
+    2026: {
+      "2026-01-26": "Republic Day",
+      "2026-03-03": "Holi",
+      "2026-03-21": "Id-ul-Fitr",
+      "2026-03-27": "Ram Navami",
+      "2026-03-31": "Mahavir Jayanti",
+      "2026-04-01": "Bank Annual Closing",
+      "2026-04-03": "Good Friday",
+      "2026-05-01": "Buddh Purnima",
+      "2026-05-27": "Eid-uz-Zuha",
+      "2026-06-26": "Moharram",
+      "2026-08-15": "Independence Day",
+      "2026-08-26": "Milad-un-Nabi",
+      "2026-08-28": "Raksha Bandhan",
+      "2026-09-04": "Janmashtami",
+      "2026-10-02": "Gandhi Jayanti",
+      "2026-10-20": "Dussehra (Vijayadashami)",
+      "2026-11-09": "Govardhan Puja",
+      "2026-11-24": "Guru Nanak Jayanti",
+      "2026-12-25": "Christmas"
+    }
   };
 
   function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
@@ -636,10 +633,11 @@
     const y = current.getFullYear();
     const m = current.getMonth();
     document.getElementById("monthText").textContent = `${MONTHS[m]} ${y}`;
+    document.getElementById("calendarYearLabel").textContent = `Calendar ${y}`;
 
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-    updateHolidaySummary("");
+    updateHolidaySummary("", y);
 
     const firstDow = new Date(y,m,1).getDay();
     const total = daysInMonth(y,m);
@@ -655,6 +653,7 @@
     const isThisMonthToday = (today.getFullYear() === y && today.getMonth() === m);
 
     const store = loadStore();
+    const bankHolidaysForYear = BANK_HOLIDAYS[y] || {};
 
     for(let d=1; d<=total; d++){
       const div = document.createElement("div");
@@ -668,12 +667,12 @@
       const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
       if(isFixedHoliday(y,m,d)) div.classList.add("holiday");
-      if(BANK_HOLIDAYS[key]){
+      if(bankHolidaysForYear[key]){
         div.classList.add("bank-holiday");
-        div.title = `Bank Holiday: ${BANK_HOLIDAYS[key]}`;
+        div.title = `Bank Holiday: ${bankHolidaysForYear[key]}`;
         const label = document.createElement("span");
         label.className = "holiday-label";
-        label.textContent = BANK_HOLIDAYS[key];
+        label.textContent = bankHolidaysForYear[key];
         div.appendChild(label);
       }
       if(isThisMonthToday && today.getDate() === d) div.classList.add("today");
@@ -687,10 +686,10 @@
 
       // open modal on click
       div.addEventListener("click", ()=>{
-        if(BANK_HOLIDAYS[key]){
-          updateHolidaySummary(BANK_HOLIDAYS[key]);
+        if(bankHolidaysForYear[key]){
+          updateHolidaySummary(bankHolidaysForYear[key], y);
         } else {
-          updateHolidaySummary("");
+          updateHolidaySummary("", y);
         }
         openModal(key);
       });
@@ -700,15 +699,19 @@
 
     if(isThisMonthToday){
       const todayKey = `${y}-${String(m+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-      if(BANK_HOLIDAYS[todayKey]){
-        updateHolidaySummary(BANK_HOLIDAYS[todayKey]);
+      if(bankHolidaysForYear[todayKey]){
+        updateHolidaySummary(bankHolidaysForYear[todayKey], y);
       }
     }
   }
 
-  function updateHolidaySummary(name){
+  function updateHolidaySummary(name, year){
     const summary = document.getElementById("holidaySummary");
     if(!summary) return;
+    if(!BANK_HOLIDAYS[year]){
+      summary.innerHTML = `Holiday: <span>Bank holiday list not available for ${year}</span>`;
+      return;
+    }
     summary.innerHTML = name
       ? `Holiday: <span>${name}</span>`
       : "Holiday: <span>None</span>";
@@ -716,26 +719,25 @@
 
   function prevMonth(){
     current = new Date(current.getFullYear(), current.getMonth()-1, 1);
-    if(current.getFullYear() < YEAR) current = new Date(YEAR,0,1);
     render();
   }
 
   function nextMonth(){
     current = new Date(current.getFullYear(), current.getMonth()+1, 1);
-    if(current.getFullYear() > YEAR) current = new Date(YEAR,11,1);
     render();
   }
 
   function goToday(){
     const t = new Date();
-    if(t.getFullYear() === YEAR) current = new Date(YEAR, t.getMonth(), 1);
-    else current = new Date(YEAR, 0, 1);
+    current = new Date(t.getFullYear(), t.getMonth(), 1);
     render();
   }
 
   function openTodayNote(){
     const t = new Date();
     const key = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+    current = new Date(t.getFullYear(), t.getMonth(), 1);
+    render();
     openModal(key);
   }
 
