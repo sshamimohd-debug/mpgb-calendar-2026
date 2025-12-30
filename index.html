@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes" />
   <title>MPGB Calendar 2026</title>
 
   <!-- PWA -->
@@ -38,7 +38,7 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--ink);
       -webkit-tap-highlight-color: transparent;
-      background: linear-gradient(180deg, rgba(15,76,129,.12), rgba(16,166,74,.07), #f3f5f9);
+      background: linear-gradient(180deg, rgba(15,76,129,.10), rgba(16,166,74,.05), #f8fafc);
     }
 
     /* App frame */
@@ -46,7 +46,8 @@
       max-width:520px;
       margin:0 auto;
       min-height:100vh;
-      background:transparent;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(10px);
     }
 
     /* ===== MPGB Header Image (BIGGER) ===== */
@@ -58,15 +59,10 @@
 
     .bank-header img{
       width:100%;
-      height:auto;
-      max-height:140px;
+      height:clamp(88px, 18vw, 140px);
       object-fit:contain;
       object-position:center;
       display:block;
-    }
-
-    @media (min-width:600px){
-      .bank-header img{ max-height:120px; }
     }
 
 
@@ -207,6 +203,13 @@
       background: rgba(15,76,129,.12);
     }
 
+
+    /* Selected date (tap highlight) */
+    .cell.selected{
+      outline:2px solid rgba(15,76,129,.55);
+      box-shadow: 0 10px 22px rgba(2,6,23,.12);
+      transform: translateY(-1px);
+    }
     /* Holiday cells */
     .holiday{
       background: rgba(185,28,28,.08);
@@ -244,24 +247,24 @@
     }
     .holiday-label{
       font-size:10px;
-      font-weight:800;
+      font-weight:900;
       text-transform:uppercase;
-      letter-spacing:.3px;
+      letter-spacing:.35px;
       color:#0f766e;
-      background: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.86);
       padding:2px 8px;
       border-radius:999px;
       max-width:92%;
-      line-height:1.2;
+      line-height:1.15;
       text-align:center;
       position:absolute;
       left:6px;
       right:6px;
       bottom:6px;
-      display:-webkit-box;
-      -webkit-line-clamp:2;
-      -webkit-box-orient:vertical;
+      white-space:nowrap;
       overflow:hidden;
+      text-overflow:ellipsis;
+      pointer-events:none;
     }
     .holiday.bank-holiday .holiday-label{
       color:#7f1d1d;
@@ -405,6 +408,31 @@
       color:#1e40af;
       cursor:pointer;
     }
+
+    .srOnly{
+      position:absolute;
+      width:1px;height:1px;
+      padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);
+      white-space:nowrap;border:0;
+    }
+
+    .monthJump{
+      margin-top:8px;
+      display:flex;
+      justify-content:flex-start;
+    }
+    #monthSelect{
+      width:100%;
+      max-width:240px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      font-weight:800;
+      color:#0b1f33;
+      box-shadow:0 6px 16px rgba(2,6,23,.06);
+    }
   </style>
 </head>
 
@@ -419,16 +447,20 @@
       <div class="row1">
         <div class="app-title">Madhya Pradesh Gramin Bank</div>
         <div class="actions">
-          <div class="iconbtn" title="Previous" onclick="prevMonth()">&#x2039;</div>
-          <div class="iconbtn" title="Next" onclick="nextMonth()">&#x203A;</div>
-          <div class="iconbtn" title="Today" onclick="goToday()">&#x25CF;</div>
-          <div class="iconbtn" title="Add Note" onclick="openTodayNote()">&#9998;</div>
+          <button class="iconbtn" type="button" title="Previous" aria-label="Previous month" onclick="prevMonth()">&#x2039;</button>
+          <button class="iconbtn" type="button" title="Next" aria-label="Next month" onclick="nextMonth()">&#x203A;</button>
+          <button class="iconbtn" type="button" title="Today" aria-label="Go to today" onclick="goToday()">&#x25CF;</button>
+          <button class="iconbtn" type="button" title="Add Note" aria-label="Add note for today" onclick="openTodayNote()">&#9998;</button>
         </div>
       </div>
 
       <div class="monthTitle">
         <div class="monthText" id="monthText">January 2026</div>
-        <div class="hint">Swipe ◀ ▶</div>
+        <div class="hint">Swipe ◀ ▶ to change month</div>
+        <div class="monthJump">
+          <label class="srOnly" for="monthSelect">Jump to month</label>
+          <select id="monthSelect" aria-label="Jump to month"></select>
+        </div>
       </div>
     </div>
 
@@ -442,11 +474,11 @@
 
         <div class="footer">
           <div>
-            <div class="badge"><span class="dot"></span> Sunday / 2nd & 4th Saturday</div>
-            <div class="badge"><span class="dot bank"></span> Bank Holiday</div>
-            <div class="holiday-summary" id="holidaySummary">Holiday: <span>None</span></div>
+            <div class="badge"><span class="dot"></span> Weekly Off (Sunday / 2nd & 4th Saturday)</div>
+            <div class="badge"><span class="dot bank"></span> Bank Holiday (🏦)</div>
+            <div class="holiday-summary" id="holidaySummary">Select a date: <span>Holiday details</span></div>
           </div>
-          <div>Calendar 2026</div>
+          <div id="calendarYearLabel">Calendar 2026</div>
         </div>
       </div>
     </div>
@@ -475,7 +507,7 @@
         </div>
 
         <div class="miniMsg" id="modalMsg">
-          Tip: Notes offline save hote hain. Reminder notification ke liye permission allow karein.
+          Tip: Notes are saved offline. Keep the app open for reminders.
         </div>
         <button class="ghostBtn" onclick="requestNotificationPermission()">Enable Reminder Notifications</button>
       </div>
@@ -484,32 +516,68 @@
 
 <script>
   // ===== STATE =====
-  const YEAR = 2026;
-  let current = new Date(YEAR, 0, 1); // Jan 2026
+  let current = new Date(2026, 0, 1); // Default to Jan 2026
   const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const BANK_HOLIDAYS = {
-    "2026-01-26": "Republic Day",
-    "2026-03-03": "Holi",
-    "2026-03-21": "Id-ul-Fitr",
-    "2026-03-27": "Ram Navami",
-    "2026-03-31": "Mahavir Jayanti",
-    "2026-04-01": "Bank Annual Closing",
-    "2026-04-03": "Good Friday",
-    "2026-05-01": "Buddh Purnima",
-    "2026-05-27": "Eid-uz-Zuha",
-    "2026-06-26": "Moharram",
-    "2026-08-15": "Independence Day",
-    "2026-08-26": "Milad-un-Nabi",
-    "2026-08-28": "Raksha Bandhan",
-    "2026-09-04": "Janmashtami",
-    "2026-10-02": "Gandhi Jayanti",
-    "2026-10-20": "Dussehra (Vijayadashami)",
-    "2026-11-09": "Govardhan Puja",
-    "2026-11-24": "Guru Nanak Jayanti",
-    "2026-12-25": "Christmas"
+    2026: {
+      "2026-01-26": "Republic Day",
+      "2026-03-03": "Holi",
+      "2026-03-21": "Id-ul-Fitr",
+      "2026-03-27": "Ram Navami",
+      "2026-03-31": "Mahavir Jayanti",
+      "2026-04-01": "Bank Annual Closing",
+      "2026-04-03": "Good Friday",
+      "2026-05-01": "Buddh Purnima",
+      "2026-05-27": "Eid-uz-Zuha",
+      "2026-06-26": "Moharram",
+      "2026-08-15": "Independence Day",
+      "2026-08-26": "Milad-un-Nabi",
+      "2026-08-28": "Raksha Bandhan",
+      "2026-09-04": "Janmashtami",
+      "2026-10-02": "Gandhi Jayanti",
+      "2026-10-20": "Dussehra (Vijayadashami)",
+      "2026-11-09": "Govardhan Puja",
+      "2026-11-24": "Guru Nanak Jayanti",
+      "2026-12-25": "Christmas"
+    }
   };
 
-  function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
+  
+  function holidayShortName(full){
+    if(!full) return "";
+    const map = {
+      "Republic Day":"Republic",
+      "Independence Day":"Independence",
+      "Gandhi Jayanti":"Gandhi J.",
+      "Christmas":"Xmas",
+      "Good Friday":"Good Fri",
+      "Bank Annual Closing":"Annual Close",
+      "Id-ul-Fitr":"Id-ul-Fitr",
+      "Eid-uz-Zuha":"Eid-uz-Zuha",
+      "Milad-un-Nabi":"Milad",
+      "Moharram":"Moharram",
+      "Janmashtami":"Janmashtami",
+      "Guru Nanak Jayanti":"Guru Nanak",
+      "Govardhan Puja":"Govardhan",
+      "Mahavir Jayanti":"Mahavir",
+      "Ram Navami":"Ram Navami",
+      "Buddh Purnima":"Buddh P.",
+      "Dussehra (Vijayadashami)":"Dussehra"
+    };
+    if(map[full]) return map[full];
+    // fallback: keep it short for the cell chip
+    const cleaned = full.replace(/\(.*?\)/g,"").trim();
+    if(cleaned.length <= 12) return cleaned;
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    if(words.length === 1) return cleaned.slice(0,12);
+    // take first word + initial(s)
+    const first = words[0];
+    const rest = words.slice(1).map(w=>w[0]).join("");
+    const out = (first + " " + rest).slice(0,12).trim();
+    return out;
+  }
+
+function daysInMonth(y,m){ return new Date(y, m+1, 0).getDate(); }
 
   // Sunday OR 2nd/4th Saturday
   function isFixedHoliday(y,m,d){
@@ -529,6 +597,7 @@
   // ===== Notes store (LocalStorage) =====
   const STORE_KEY = "mpgb_notes_v1";
   let selectedKey = null; // YYYY-MM-DD
+  let selectedEl = null;
   const reminderTimers = new Map();
 
   function loadStore(){
@@ -636,10 +705,12 @@
     const y = current.getFullYear();
     const m = current.getMonth();
     document.getElementById("monthText").textContent = `${MONTHS[m]} ${y}`;
+    if(monthSelect) monthSelect.value = String(m);
+    document.getElementById("calendarYearLabel").textContent = `Calendar ${y}`;
 
     const grid = document.getElementById("grid");
     grid.innerHTML = "";
-    updateHolidaySummary("");
+    updateHolidaySummary("", y, m);
 
     const firstDow = new Date(y,m,1).getDay();
     const total = daysInMonth(y,m);
@@ -655,6 +726,7 @@
     const isThisMonthToday = (today.getFullYear() === y && today.getMonth() === m);
 
     const store = loadStore();
+    const bankHolidaysForYear = BANK_HOLIDAYS[y] || {};
 
     for(let d=1; d<=total; d++){
       const div = document.createElement("div");
@@ -668,12 +740,14 @@
       const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
       if(isFixedHoliday(y,m,d)) div.classList.add("holiday");
-      if(BANK_HOLIDAYS[key]){
+      if(bankHolidaysForYear[key]){
         div.classList.add("bank-holiday");
-        div.title = `Bank Holiday: ${BANK_HOLIDAYS[key]}`;
+        const fullName = bankHolidaysForYear[key];
+        div.title = `Bank Holiday: ${fullName}`;
         const label = document.createElement("span");
         label.className = "holiday-label";
-        label.textContent = BANK_HOLIDAYS[key];
+        label.textContent = holidayShortName(fullName);
+        label.title = fullName;
         div.appendChild(label);
       }
       if(isThisMonthToday && today.getDate() === d) div.classList.add("today");
@@ -687,11 +761,14 @@
 
       // open modal on click
       div.addEventListener("click", ()=>{
-        if(BANK_HOLIDAYS[key]){
-          updateHolidaySummary(BANK_HOLIDAYS[key]);
-        } else {
-          updateHolidaySummary("");
-        }
+        // selected highlight
+        if(selectedEl) selectedEl.classList.remove("selected");
+        selectedEl = div;
+        selectedKey = key;
+        div.classList.add("selected");
+
+        const full = bankHolidaysForYear[key] || "";
+        updateHolidaySummary(full, y, m);
         openModal(key);
       });
 
@@ -700,42 +777,67 @@
 
     if(isThisMonthToday){
       const todayKey = `${y}-${String(m+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-      if(BANK_HOLIDAYS[todayKey]){
-        updateHolidaySummary(BANK_HOLIDAYS[todayKey]);
+      if(bankHolidaysForYear[todayKey]){
+        updateHolidaySummary(bankHolidaysForYear[todayKey], y, m);
       }
     }
   }
 
-  function updateHolidaySummary(name){
+  function updateHolidaySummary(name, year, monthIdx){
     const summary = document.getElementById("holidaySummary");
     if(!summary) return;
-    summary.innerHTML = name
-      ? `Holiday: <span>${name}</span>`
-      : "Holiday: <span>None</span>";
+
+    const yearMap = BANK_HOLIDAYS[year];
+    if(!yearMap){
+      summary.innerHTML = `Select a date: <span>Bank holiday list not available for ${year}</span>`;
+      return;
+    }
+
+    // If a specific date holiday is passed, show full name
+    if(name){
+      summary.innerHTML = `Holiday: <span>${name}</span>`;
+      return;
+    }
+
+    // Otherwise show a helpful month summary (mobile friendly)
+    const mm = String(monthIdx+1).padStart(2,"0");
+    const monthKeys = Object.keys(yearMap).filter(k => k.startsWith(`${year}-${mm}-`)).sort();
+    if(monthKeys.length){
+      const items = monthKeys.map(k=>{
+        const day = Number(k.slice(8,10));
+        const nm = yearMap[k];
+        return `${day} ${nm}`;
+      });
+
+      // Keep it short on one line; full list will still be available via date tap
+      const preview = items.slice(0,3).join(" • ") + (items.length>3 ? ` • +${items.length-3} more` : "");
+      summary.innerHTML = `This month: <span>${preview}</span>`;
+    } else {
+      summary.innerHTML = `Select a date: <span>No bank holiday this month</span>`;
+    }
   }
 
-  function prevMonth(){
+function prevMonth(){
     current = new Date(current.getFullYear(), current.getMonth()-1, 1);
-    if(current.getFullYear() < YEAR) current = new Date(YEAR,0,1);
     render();
   }
 
   function nextMonth(){
     current = new Date(current.getFullYear(), current.getMonth()+1, 1);
-    if(current.getFullYear() > YEAR) current = new Date(YEAR,11,1);
     render();
   }
 
   function goToday(){
     const t = new Date();
-    if(t.getFullYear() === YEAR) current = new Date(YEAR, t.getMonth(), 1);
-    else current = new Date(YEAR, 0, 1);
+    current = new Date(t.getFullYear(), t.getMonth(), 1);
     render();
   }
 
   function openTodayNote(){
     const t = new Date();
     const key = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+    current = new Date(t.getFullYear(), t.getMonth(), 1);
+    render();
     openModal(key);
   }
 
@@ -759,7 +861,19 @@
     }
   }, {passive:true});
 
-  render();
+  
+  // Month jump dropdown (mobile friendly)
+  const monthSelect = document.getElementById("monthSelect");
+  if(monthSelect){
+    monthSelect.innerHTML = MONTHS.map((n,i)=>`<option value="${i}">${n}</option>`).join("");
+    monthSelect.value = String(current.getMonth());
+    monthSelect.addEventListener("change", ()=>{
+      const m = Number(monthSelect.value);
+      current = new Date(current.getFullYear(), m, 1);
+      render();
+    });
+  }
+render();
   scheduleReminders();
 
   // Register Service Worker (PWA)

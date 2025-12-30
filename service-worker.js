@@ -1,8 +1,9 @@
-const CACHE_NAME = "mpgb-calendar-2026-v4";
+const CACHE_NAME = "mpgb-calendar-2026-v6";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
+  "./offline.html",
   "./manifest.json",
   "./service-worker.js",
   "./header_v2.png",
@@ -27,6 +28,15 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        caches.match("./offline.html")
+      )
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
