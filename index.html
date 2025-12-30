@@ -183,9 +183,10 @@
 
     /* Stylish date cells (bank theme) */
     .cell{
-      height:54px;
+      height:64px;
       border-radius:16px;
       display:flex;
+      flex-direction:column;
       align-items:center;
       justify-content:center;
       font-size:17px;
@@ -198,6 +199,7 @@
 
       transition: transform .08s ease, background .12s ease;
       position:relative; /* for dot */
+      gap:4px;
     }
     .empty{ visibility:hidden; }
 
@@ -233,6 +235,29 @@
       background: linear-gradient(180deg, rgba(185,28,28,.18), rgba(16,166,74,.12));
       color:#7f1d1d;
       border:1px solid rgba(185,28,28,.4);
+    }
+
+    .date-num{
+      font-size:17px;
+      font-weight:950;
+      line-height:1;
+    }
+    .holiday-label{
+      font-size:9px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.3px;
+      color:#0f766e;
+      background: rgba(255,255,255,.7);
+      padding:2px 6px;
+      border-radius:999px;
+      max-width:90%;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .holiday.bank-holiday .holiday-label{
+      color:#7f1d1d;
     }
 
     /* Today outline */
@@ -364,6 +389,15 @@
       color:#6b7280;
       font-weight:800;
     }
+    .ghostBtn{
+      border:1px dashed #cbd5f5;
+      background:#f8fafc;
+      border-radius:12px;
+      padding:8px 10px;
+      font-weight:800;
+      color:#1e40af;
+      cursor:pointer;
+    }
   </style>
 </head>
 
@@ -434,8 +468,9 @@
         </div>
 
         <div class="miniMsg" id="modalMsg">
-          Tip: Note save offline hota hai. (Notifications baad me add kar sakte hain.)
+          Tip: Notes offline save hote hain. Reminder notification ke liye permission allow karein.
         </div>
+        <button class="ghostBtn" onclick="requestNotificationPermission()">Enable Reminder Notifications</button>
       </div>
     </div>
   </div>
@@ -487,6 +522,7 @@
   // ===== Notes store (LocalStorage) =====
   const STORE_KEY = "mpgb_notes_v1";
   let selectedKey = null; // YYYY-MM-DD
+  const reminderTimers = new Map();
 
   function loadStore(){
     try { return JSON.parse(localStorage.getItem(STORE_KEY) || "{}"); }
@@ -536,6 +572,7 @@
     saveStore(store);
     closeModal();
     render();
+    scheduleReminders();
   }
   function deleteNote(){
     if(!selectedKey) return;
@@ -544,6 +581,48 @@
     saveStore(store);
     closeModal();
     render();
+    scheduleReminders();
+  }
+
+  function requestNotificationPermission(){
+    if(!("Notification" in window)){
+      alert("Browser notifications not supported.");
+      return;
+    }
+    Notification.requestPermission().then((permission)=>{
+      if(permission === "granted"){
+        alert("Notifications enabled.");
+        scheduleReminders();
+      } else {
+        alert("Notifications blocked. Please allow in browser settings.");
+      }
+    });
+  }
+
+  function clearReminderTimers(){
+    reminderTimers.forEach((timerId)=> clearTimeout(timerId));
+    reminderTimers.clear();
+  }
+
+  function scheduleReminders(){
+    clearReminderTimers();
+    if(!("Notification" in window) || Notification.permission !== "granted") return;
+
+    const store = loadStore();
+    const now = Date.now();
+    Object.entries(store).forEach(([key, data])=>{
+      if(!data || !data.remindAt) return;
+      const remindTime = new Date(data.remindAt).getTime();
+      if(Number.isNaN(remindTime) || remindTime <= now) return;
+      const delay = remindTime - now;
+      const timerId = setTimeout(()=>{
+        new Notification("MPGB Calendar Reminder", {
+          body: data.text || `Reminder for ${key}`,
+          icon: "icon-192.png"
+        });
+      }, delay);
+      reminderTimers.set(key, timerId);
+    });
   }
 
   function render(){
@@ -572,7 +651,11 @@
     for(let d=1; d<=total; d++){
       const div = document.createElement("div");
       div.className = "cell";
-      div.textContent = d;
+
+      const dateSpan = document.createElement("span");
+      dateSpan.className = "date-num";
+      dateSpan.textContent = d;
+      div.appendChild(dateSpan);
 
       const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
@@ -580,6 +663,10 @@
       if(BANK_HOLIDAYS[key]){
         div.classList.add("bank-holiday");
         div.title = `Bank Holiday: ${BANK_HOLIDAYS[key]}`;
+        const label = document.createElement("span");
+        label.className = "holiday-label";
+        label.textContent = BANK_HOLIDAYS[key];
+        div.appendChild(label);
       }
       if(isThisMonthToday && today.getDate() === d) div.classList.add("today");
 
@@ -626,13 +713,13 @@
 
   // Swipe on appbar
   let startX = 0, startY = 0;
-  const touchArea = document.getElementById("touchArea");
-  touchArea.addEventListener("touchstart", (e)=>{
+  document.addEventListener("touchstart", (e)=>{
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
   }, {passive:true});
 
-  touchArea.addEventListener("touchend", (e)=>{
+  document.addEventListener("touchend", (e)=>{
+    if(document.getElementById("noteModal").style.display === "block") return;
     const endX = e.changedTouches[0].clientX;
     const endY = e.changedTouches[0].clientY;
     const dx = endX - startX;
@@ -645,6 +732,7 @@
   }, {passive:true});
 
   render();
+  scheduleReminders();
 
   // Register Service Worker (PWA)
   if ('serviceWorker' in navigator) {
