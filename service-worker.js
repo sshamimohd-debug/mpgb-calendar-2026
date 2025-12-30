@@ -1,6 +1,6 @@
 /* MPGB Calendar – PWA Safe Service Worker (no stuck cache) */
 
-const CACHE_NAME = "mpgb-calendar-v2026-final-02";
+const CACHE_NAME = "mpgb-calendar-v2026-final-05";
 
 const FILES_TO_CACHE = [
   "./",
