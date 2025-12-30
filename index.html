@@ -52,25 +52,20 @@
     .bank-header{
   background: linear-gradient(
     180deg,
-    rgba(15,76,129,0.04),
-    rgba(16,166,74,0.03)
+    rgba(15,76,129,0.06),
+    rgba(16,166,74,0.04)
   );
-  padding:0;
+  padding: 6px 0 10px;   /* 👈 boxy feel break */
   border-bottom:1px solid var(--line);
 }
 
 .bank-header img{
   width:100%;
-  height:96px;              /* mobile perfect height */
-  object-fit:cover;         /* KEY CHANGE */
-  object-position:center;
+  height:104px;          /* 👈 thoda breathing space */
+  object-fit: contain;   /* 👈 NO CUT GUARANTEE */
+  object-position: center;
   display:block;
-
-  /* boxy feel remove */
-  border-radius:0;
-  background:transparent;
 }
-
     .appbar{
       position:sticky;
       top:0;
@@ -966,4 +961,5 @@
 
 </body>
 </html>
+
 
