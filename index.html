@@ -268,8 +268,7 @@
       box-shadow: inset 0 0 0 1px rgba(16,166,74,.08);
     }
     .bank-holiday:active{ background:#dcfce7; }
-    
-    .holiday.bank-holiday{
+        .holiday.bank-holiday{
       background: linear-gradient(180deg, rgba(185,28,28,.14), rgba(16,166,74,.10));
       color:#7f1d1d;
       border:1px solid rgba(185,28,28,.28);
@@ -458,6 +457,100 @@
       color:#1e40af;
       cursor:pointer;
     }
+    /* ===========================
+   PATCH-1: Compact + Color Polish (Minimal)
+   (Add this block at the END of your <style> section)
+   =========================== */
+
+/* 1) Title single-line on mobile + slightly smaller */
+.headerTitle{
+  font-size:20px;
+  padding:6px 10px 8px;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  background:linear-gradient(90deg,#0f4c81,#1aa36f);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+/* 2) Reduce header height a bit (logo strip) */
+.bank-header{
+  padding:2px 0;
+}
+.bank-header img{
+  max-height:60px;
+}
+
+/* 3) Compact appbar spacing (less vertical space) */
+.appbar{
+  padding:8px 12px 10px;
+}
+.monthTitle{
+  margin-top:6px;
+}
+.hint{
+  margin-top:2px;
+  font-size:11px;
+}
+
+/* 4) Buttons slightly smaller + balanced */
+.iconbtn{
+  width:36px;
+  height:36px;
+  border-radius:12px;
+}
+
+/* 5) Dropdowns: less wide/tall on mobile */
+.jumpRow{ margin-top:8px; }
+.jumpGroup{ width:min(400px,100%); gap:8px; }
+.jumpSelect{
+  padding:9px 10px;
+  border-radius:12px;
+}
+
+/* 6) Softer background separation (Option-1, minimal) */
+.wrap{
+  background:#f0f7fb;
+}
+.card{
+  background:linear-gradient(180deg,#ffffff,#f7fbff);
+}
+
+/* 7) Watermark: slightly subtler + a bit up (Option-1 minimal) */
+.card::before{
+  opacity:.08;
+  background-position:center 40%;
+  background-size:74%;
+}
+
+/* 8) Holiday labels: a touch smaller so they don't feel cramped */
+.holiday-label{
+  font-size:9px;
+  line-height:1.05;
+}
+
+/* 9) Mild festival accent (Option-3 light touch)
+   - Only adds a subtle left accent on bank holidays (not loud) */
+.bank-holiday{
+  border-left:4px solid rgba(245,158,11,.55); /* soft gold */
+}
+
+/* 10) Footer spacing polish */
+.footer{
+  padding:10px 12px 12px;
+}
+.holiday-summary{
+  margin-top:6px;
+}
+
+/* If you already removed the 🏦 mark, keep it removed.
+   If it still exists, ensure this is NOT present:
+   .bank-holiday::after { content:"🏦"; ... }
+*/
+
   </style>
 </head>
 
