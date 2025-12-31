@@ -48,30 +48,39 @@
       background: rgba(255,255,255,.65);
       backdrop-filter: blur(10px);
     }
+    
+.badge-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;   /* mobile safe */
+}
 
-    .bank-header{
-  background:#fff;                 /* ✅ pure white */
-  padding: 8px 0;                  /* thoda breathing space */
+.bank-header{
+  background:#fff;
+  padding:4px 0;                 /* slim header */
   border-bottom:1px solid var(--line);
 }
 
 .bank-header img{
   width:100%;
-  height:72px;                     /* compact */
-  object-fit:contain;              /* no cut */
-  object-position:center;
+  height:auto;                   /* ✅ boxy effect gone */
+  max-height:64px;               /* safety limit */
+  object-fit:contain;
   display:block;
-  background:#fff;                 /* ✅ image ke around bhi white */
 }
 
-    .headerTitle{
-      text-align:center;
-      font-weight:1000;
-      letter-spacing:.2px;
-      padding:8px 12px 2px;
-      color:#0f172a;
-      background:#fff;
-    }
+   .headerTitle{
+  text-align:center;
+  font-size:22px;
+  font-weight:900;
+  padding:8px 10px 10px;
+  letter-spacing:.4px;
+  background:linear-gradient(90deg,#0f4c81,#10a64a);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
 
     .appbar{
       position:sticky;
@@ -187,7 +196,7 @@
       inset:0;
       background-image:url("icon-512.png");
       background-repeat:no-repeat;
-      background-position:center;
+      background-position:center 38%;
       background-size:78%;
       opacity:.10;
       pointer-events:none;
@@ -468,7 +477,7 @@
 
     <div class="appbar" id="touchArea">
       <div class="row1">
-        <div class="app-title">MPGB Bank Calendar</div>
+        <div class="headerTitle">MPGB Calendar – 2026</div>
         <div class="actions">
           <button class="iconbtn" type="button" title="Previous" aria-label="Previous month" onclick="prevMonth()">&#x2039;</button>
           <button class="iconbtn" type="button" title="Next" aria-label="Next month" onclick="nextMonth()">&#x203A;</button>
@@ -500,17 +509,20 @@
         <div class="grid" id="grid"></div>
 
         <div class="footer">
-          <div>
-            <div class="badge"><span class="dot"></span> Weekly Off (Sun + 2nd & 4th Sat)</div>
-            <div class="badge"><span class="dot bank"></span> Bank Holiday (🏦)</div>
-            <div class="holiday-summary" id="holidaySummary">Select a date to see holiday</div>
-          </div>
-          <div id="calendarYearLabel">Bank Calendar 2026</div>
-        </div>
-      </div>
+  <div>
+
+    <!-- 👇 ONLY THIS NEW DIV -->
+    <div class="badge-row">
+      <div class="badge"><span class="dot"></span> Weekly Off (Sun + 2nd & 4th Sat)</div>
+      <div class="badge"><span class="dot bank"></span> Bank Holiday (🏦)</div>
+    </div>
+
+    <div class="holiday-summary" id="holidaySummary">
+      Select a date to see holiday
     </div>
 
   </div>
+</div>
 
   <div id="noteModal" onclick="if(event.target.id==='noteModal') closeModal()">
     <div class="modalSheet">
@@ -847,8 +859,7 @@
     if(y > YEAR_MAX){ current = new Date(YEAR_MAX, m, 1); }
 
     document.getElementById("monthText").textContent = `${MONTHS[m]} ${y}`;
-    document.getElementById("calendarYearLabel").textContent = `Bank Calendar ${y}`;
-
+    
     syncJump();
 
     const grid = document.getElementById("grid");
