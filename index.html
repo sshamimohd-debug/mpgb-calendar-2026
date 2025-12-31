@@ -550,6 +550,68 @@
    If it still exists, ensure this is NOT present:
    .bank-holiday::after { content:"🏦"; ... }
 */
+/* ===========================
+   PATCH-2 (AS PER YOUR SCREENSHOT)
+   Header image SAME rahega.
+   Header ke neeche wala part = BLUE
+   Calendar/date part = LIGHT GREEN
+   Sun/Mon row = more bold + highlighted
+   Footer = SAME (no change)
+   Paste this at END of <style>
+   =========================== */
+
+/* Keep header as-is (no extra style changes needed) */
+
+/* 1) Header ke neeche wala part (appbar) BLUE */
+.appbar{
+  background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 55%, #ffffff 100%) !important;
+  border-bottom: 1px solid rgba(15,76,129,.18) !important;
+}
+
+/* Title + month text a bit stronger on blue */
+.monthText{
+  color:#0f4c81 !important;
+  font-weight:1000 !important;
+}
+.hint{
+  color:#334155 !important;
+  font-weight:800 !important;
+}
+
+/* Buttons thoda “blue tone” feel */
+.iconbtn{
+  border:1px solid rgba(15,76,129,.20) !important;
+  background:#ffffff !important;
+}
+
+/* Month/Year dropdowns on blue section */
+.jumpSelect{
+  border:1px solid rgba(15,76,129,.18) !important;
+  background:#ffffff !important;
+}
+
+/* 2) Date/calendar part LIGHT GREEN */
+.wrap{
+  background: linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 60%, #ffffff 100%) !important;
+}
+
+/* Card stays white, but slightly green tint */
+.card{
+  background: linear-gradient(180deg, #ffffff 0%, #f6fffb 100%) !important;
+}
+
+/* 3) Sun/Mon row more bold + highlighted */
+.dow{
+  background: linear-gradient(90deg, rgba(16,166,74,.20), rgba(15,76,129,.10)) !important;
+  border-bottom: 1px solid rgba(16,166,74,.18) !important;
+}
+.dow div{
+  font-weight:1000 !important;
+  color:#0b1f33 !important;
+  letter-spacing:.35px !important;
+}
+
+/* Footer SAME rakho — no footer rules here */
 
   </style>
 </head>
