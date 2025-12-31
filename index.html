@@ -612,6 +612,58 @@
 }
 
 /* Footer SAME rakho — no footer rules here */
+/* ===========================
+   PATCH-3 : Title wrap + Stylish buttons
+   Paste at END of <style>
+   =========================== */
+
+/* 1️⃣ Header title – CUT HONE SE ROKO */
+.headerTitle{
+  white-space:normal !important;     /* ❌ no ellipsis */
+  overflow:visible !important;
+  text-overflow:unset !important;
+  max-width:100%;
+  padding-left:14px;
+  padding-right:14px;
+  text-align:center;
+}
+
+/* Mobile pe 2-line allowed, clean break */
+@media (max-width:480px){
+  .headerTitle{
+    font-size:20px;
+    line-height:1.2;
+  }
+}
+
+/* 2️⃣ Buttons ko stylish / designed look */
+.iconbtn{
+  background:linear-gradient(180deg,#ffffff,#f1f5f9) !important;
+  border:1px solid rgba(15,76,129,.25) !important;
+  box-shadow:
+    0 6px 14px rgba(15,76,129,.18),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  color:#0f4c81 !important;
+}
+
+/* Hover / tap feel (mobile friendly) */
+.iconbtn:active{
+  transform:scale(.96);
+  box-shadow:
+    0 3px 8px rgba(15,76,129,.25),
+    inset 0 1px 2px rgba(0,0,0,.12);
+}
+
+/* Icons thode bold dikhen */
+.iconbtn{
+  font-weight:1000;
+  font-size:18px;
+}
+
+/* Buttons row thoda balanced */
+.actions{
+  gap:10px;
+}
 
   </style>
 </head>
